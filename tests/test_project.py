@@ -40,6 +40,13 @@ class ProjectTests(unittest.TestCase):
         self.assertIn('PointerPressed="Browser_PointerPressed"', xaml)
         self.assertIn("Browser.Focus(FocusState.Pointer)", code)
 
+    def test_toolbar_keeps_all_controls_visible_in_two_rows(self):
+        xaml = (ROOT / "src/XboxGamingBrowser/MainPage.xaml").read_text(encoding="utf-8")
+        self.assertIn('x:Name="Toolbar" Orientation="Vertical"', xaml)
+        self.assertIn('Content="Pruebas" Width="120"', xaml)
+        self.assertIn('Content="Memoria" Width="120"', xaml)
+        self.assertIn('Content="MODO GAMING" Width="160"', xaml)
+
     def test_fixed_webview_runtime_is_staged_and_selected(self):
         import json
         config = json.loads((ROOT / "config/webview2-fixed-runtime.json").read_text(encoding="utf-8"))
