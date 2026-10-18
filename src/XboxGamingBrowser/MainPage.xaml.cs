@@ -20,7 +20,11 @@ namespace XboxGamingBrowser
         {
             if (string.IsNullOrWhiteSpace(raw)) return;
             string value = raw.Trim();
-            if (!value.Contains("://")) value = value.Contains(" ") ? "https://www.bing.com/search?q=" + Uri.EscapeDataString(value) : "https://" + value;
+            if (!value.Contains("://"))
+            {
+                bool looksLikeHost = value.Contains(".") && !value.Contains(" ");
+                value = looksLikeHost ? "https://" + value : "https://www.google.es/search?q=" + Uri.EscapeDataString(value) + "&hl=es&gl=es";
+            }
             Uri uri; if (!Uri.TryCreate(value, UriKind.Absolute, out uri) || (uri.Scheme != "https" && uri.Scheme != "http")) { Address.Text = "Dirección no válida (solo HTTP/HTTPS)"; return; }
             Browser.Source = uri;
         }
@@ -35,6 +39,7 @@ namespace XboxGamingBrowser
             var dialog = new ContentDialog { Title = "Memoria de la aplicación", Content = string.Format("Uso reportado: {0:N0} MiB\nLímite actual: {1:N0} MiB\nNivel: {2}\n\nEsta API no indica RAM física libre ni memoria privada exacta del motor gráfico.", used / 1048576.0, limit / 1048576.0, Windows.System.MemoryManager.AppMemoryUsageLevel), CloseButtonText = "Cerrar" };
             await dialog.ShowAsync();
         }
+        private void Browser_PointerPressed(object sender, PointerRoutedEventArgs e) { Browser.Focus(FocusState.Pointer); }
         private void Browser_NavigationStarting(WebView2 s, CoreWebView2NavigationStartingEventArgs e) { Address.Text = e.Uri; }
         private void Browser_NavigationCompleted(WebView2 s, CoreWebView2NavigationCompletedEventArgs e) { if (!e.IsSuccess) Address.Text = "Error de navegación: " + e.WebErrorStatus; }
         private void Gaming_Click(object s,RoutedEventArgs e)

@@ -3,7 +3,9 @@
 | Prueba | Qué comprueba | Estado actual |
 |---|---|---|
 | WebAssembly | instancia módulo mínimo | implementado, no probado en Xbox |
-| WebGL 2 | crea contexto | implementado, no probado en Xbox |
+| WebGL 2 | crea contexto independiente | implementado, no probado en Xbox |
+| WebGL 1 | fallback con contexto independiente | implementado, no probado en Xbox |
+| Ratón/puntero | Pointer Events, pointer lock y media pointer | parcial; debe comprobarse con ratón físico en Xbox |
 | Aceleración GPU/renderer | extensión de renderer solo si permitida | parcial; renderer no prueba hardware acceleration |
 | SharedArrayBuffer | constructor y `crossOriginIsolated` | implementado, depende de sitio y runtime |
 | Atomics | objeto expuesto | API no equivale a multithreading operativo |

@@ -12,9 +12,16 @@ class ProjectTests(unittest.TestCase):
         ET.parse(ROOT / "src/XboxGamingBrowser/Package.appxmanifest")
     def test_diagnostics_claims(self):
         text = (ROOT / "src/XboxGamingBrowser/Web/diagnostics.html").read_text(encoding="utf-8")
-        for token in ["WebAssembly", "webgl2", "SharedArrayBuffer", "Atomics", "getGamepads", "crossOriginIsolated"]:
+        for token in ["WebAssembly", "webgl2", "webgl'", "SharedArrayBuffer", "Atomics", "getGamepads", "crossOriginIsolated", "Ratón y puntero"]:
             self.assertIn(token, text)
         self.assertIn("createObjectURL", text)
+    def test_google_search_and_mouse_input_are_wired(self):
+        code = (ROOT / "src/XboxGamingBrowser/MainPage.xaml.cs").read_text(encoding="utf-8")
+        xaml = (ROOT / "src/XboxGamingBrowser/MainPage.xaml").read_text(encoding="utf-8")
+        self.assertIn("www.google.es/search?q=", code)
+        self.assertIn('PointerPressed="Browser_PointerPressed"', xaml)
+        self.assertIn("Browser.Focus(FocusState.Pointer)", code)
+
     def test_appx_logos_have_manifest_dimensions(self):
         import struct
         expected = {"StoreLogo.png": (50, 50), "Logo.png": (150, 150), "SmallLogo.png": (44, 44), "WideLogo.png": (310, 150)}

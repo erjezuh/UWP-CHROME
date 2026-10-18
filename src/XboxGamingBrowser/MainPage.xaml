@@ -5,6 +5,6 @@
    <Button Content="‹" FontSize="24" Click="Back_Click"/><Button Content="›" FontSize="24" Click="Forward_Click"/><Button Content="⌂" FontSize="24" Click="Home_Click"/>
    <TextBox x:Name="Address" Width="620" PlaceholderText="Dirección web o búsqueda" KeyDown="Address_KeyDown"/><Button Content="IR" Click="Go_Click"/><Button Content="MODO GAMING" Click="Gaming_Click"/><Button Content="Pruebas" Click="Diagnostics_Click"/><Button Content="Memoria" Click="Memory_Click"/><Button Content="−" Click="ZoomOut_Click"/><Button Content="+" Click="ZoomIn_Click"/>
   </StackPanel>
-  <Grid Grid.Row="1"><wv2:WebView2 x:Name="Browser" NavigationStarting="Browser_NavigationStarting" NavigationCompleted="Browser_NavigationCompleted"/><Button x:Name="ExitGaming" Content="Volver al navegador" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16" Visibility="Collapsed" Click="Gaming_Click"/></Grid>
+  <Grid Grid.Row="1"><wv2:WebView2 x:Name="Browser" IsHitTestVisible="True" IsTabStop="True" PointerPressed="Browser_PointerPressed" NavigationStarting="Browser_NavigationStarting" NavigationCompleted="Browser_NavigationCompleted"/><Button x:Name="ExitGaming" Content="Volver al navegador" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16" Visibility="Collapsed" Click="Gaming_Click"/></Grid>
  </Grid>
 </Page>
