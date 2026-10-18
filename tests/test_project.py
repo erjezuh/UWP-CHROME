@@ -15,6 +15,14 @@ class ProjectTests(unittest.TestCase):
         for token in ["WebAssembly", "webgl2", "SharedArrayBuffer", "Atomics", "getGamepads", "crossOriginIsolated"]:
             self.assertIn(token, text)
         self.assertIn("createObjectURL", text)
+    def test_appx_logos_have_manifest_dimensions(self):
+        import struct
+        expected = {"StoreLogo.png": (50, 50), "Logo.png": (150, 150), "SmallLogo.png": (44, 44), "WideLogo.png": (310, 150)}
+        for name, dimensions in expected.items():
+            data = (ROOT / "src/XboxGamingBrowser/Assets" / name).read_bytes()
+            self.assertEqual(data[:8].hex(), "89504e470d0a1a0a", name)
+            self.assertEqual(struct.unpack(">II", data[16:24]), dimensions, name)
+
     def test_no_game_binaries_tracked(self):
         for path in ROOT.rglob("*"):
             self.assertFalse(path.suffix.lower() in {".wasm", ".pak", ".ff", ".zone"}, str(path))
