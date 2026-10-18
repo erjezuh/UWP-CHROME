@@ -134,7 +134,7 @@ namespace XboxGamingBrowser
             System.Threading.Tasks.Task initialization;
             try
             {
-                initialization = Browser.EnsureCoreWebView2Async();
+                initialization = Browser.EnsureCoreWebView2Async().AsTask();
             }
             catch (Exception ex)
             {
