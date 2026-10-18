@@ -87,6 +87,20 @@ namespace XboxGamingBrowser
                 LogException("No se pudo inspeccionar el runtime incluido", ex);
             }
 
+            // Select the packaged Fixed Version before the first CoreWebView2 creation.
+            // Changing this variable after a failed system-runtime attempt is too late for
+            // reliable runtime selection, so choose one environment up front.
+            if (!string.IsNullOrEmpty(bundledRuntime))
+            {
+                Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", bundledRuntime);
+                Log("Runtime fijo seleccionado ANTES del primer EnsureCoreWebView2Async: " + Path.GetFileName(bundledRuntime) + ".");
+            }
+            else
+            {
+                Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
+                Log("No hay runtime fijo; se usará el runtime del sistema.");
+            }
+
             SetStage("Preparando el control WebView2 visible");
             Browser.Visibility = Visibility.Visible;
             LegacyBrowser.Visibility = Visibility.Collapsed;
@@ -94,18 +108,12 @@ namespace XboxGamingBrowser
             Browser.UpdateLayout();
             Log("Control WebView2 visible y layout actualizado antes de EnsureCoreWebView2Async.");
 
-            SetStage("Inicializando WebView2 del sistema · límite 20 s");
-            Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
-            Log("Intentando inicializar WebView2 con el runtime de Xbox/sistema (máximo 20 s).");
-            await TryInitializeWebView2Async("runtime de Xbox/sistema", 20000);
-
-            if (Browser.CoreWebView2 == null && !webView2TimedOut && !string.IsNullOrEmpty(bundledRuntime))
-            {
-                SetStage("Intentando runtime fijo incluido · límite 20 s");
-                Log("WebView2 del sistema no quedó disponible; intentando runtime fijo incluido (máximo 20 s).");
-                Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", bundledRuntime);
-                await TryInitializeWebView2Async("runtime fijo incluido", 20000);
-            }
+            string selectedRuntime = string.IsNullOrEmpty(bundledRuntime)
+                ? "runtime de Xbox/sistema"
+                : "runtime fijo incluido " + Path.GetFileName(bundledRuntime);
+            SetStage("Inicializando " + selectedRuntime + " · límite 20 s");
+            Log("Invocando WebView2 con " + selectedRuntime + " (máximo 20 s).");
+            await TryInitializeWebView2Async(selectedRuntime, 20000);
 
             if (Browser.CoreWebView2 != null)
             {

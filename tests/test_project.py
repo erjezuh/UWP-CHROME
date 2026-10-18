@@ -64,6 +64,8 @@ class ProjectTests(unittest.TestCase):
         self.assertLess(code.index("FindBundledRuntime()"), code.index("EnsureCoreWebView2Async()"))
         self.assertIn("Xbox/sistema", code)
         self.assertIn("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", code)
+        self.assertIn("Runtime fijo seleccionado ANTES", code)
+        self.assertLess(code.index("Runtime fijo seleccionado ANTES"), code.index("EnsureCoreWebView2Async"))
         self.assertIn("BrowserVersionString", code)
 
     def test_diagnostics_logs_and_legacy_fallback(self):
