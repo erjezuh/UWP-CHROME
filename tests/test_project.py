@@ -80,6 +80,8 @@ class ProjectTests(unittest.TestCase):
         self.assertIn("ETAPA DE ARRANQUE:", code)
         self.assertIn("ex.ToString()", code)
         self.assertIn("Fase actual:", code)
+        self.assertIn("No hay entradas de log en memoria", code)
+        self.assertIn("var logViewer = new ScrollViewer", code)
         self.assertIn("File.AppendAllText", code)
         self.assertIn('x:Name="LegacyBrowser"', xaml)
         self.assertIn("Explora.", home)

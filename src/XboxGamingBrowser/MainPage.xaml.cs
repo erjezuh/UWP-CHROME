@@ -411,24 +411,32 @@ namespace XboxGamingBrowser
         private async void Logs_Click(object s, RoutedEventArgs e)
         {
             Log("Panel de logs abierto.");
-            var logBox = new TextBox
+            string diagnosticText = string.Format(
+                "Paquete: {0}\nFase actual: {1}\nEstado del motor: {2}\nLíneas de registro: {3}\n\n{4}",
+                GetPackageVersion(), currentStartupStage, runtimeStartupInfo, logEntries.Count,
+                logEntries.Count == 0 ? "(No hay entradas de log en memoria.)" : string.Join("\n", logEntries));
+            var logText = new TextBlock
             {
-                Text = "Paquete: " + GetPackageVersion() + "\nFase actual: " + currentStartupStage
-                    + "\nEstado del motor: " + runtimeStartupInfo + "\n\n"
-                    + string.Join("\n", logEntries),
-                IsReadOnly = true,
-                AcceptsReturn = true,
+                Text = diagnosticText,
                 TextWrapping = TextWrapping.Wrap,
                 FontFamily = new Windows.UI.Xaml.Media.FontFamily("Consolas"),
+                FontSize = 15,
+                Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White)
+            };
+            var logViewer = new ScrollViewer
+            {
+                Content = logText,
                 MinWidth = 620,
                 MaxWidth = 1000,
                 MinHeight = 300,
-                MaxHeight = 520
+                MaxHeight = 520,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
             };
             var dialog = new ContentDialog
             {
-                Title = "Registros de diagnóstico",
-                Content = logBox,
+                Title = "Diagnóstico · " + currentStartupStage,
+                Content = logViewer,
                 PrimaryButtonText = "Copiar logs",
                 CloseButtonText = "Cerrar",
                 DefaultButton = ContentDialogButton.Primary
@@ -436,8 +444,7 @@ namespace XboxGamingBrowser
             if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             {
                 var data = new DataPackage();
-                data.SetText("Paquete: " + GetPackageVersion() + "\nFase actual: " + currentStartupStage
-                    + "\nEstado del motor: " + runtimeStartupInfo + "\n\n" + string.Join("\n", logEntries));
+                data.SetText(diagnosticText);
                 Clipboard.SetContent(data);
                 Log("Logs copiados al portapapeles.");
             }
