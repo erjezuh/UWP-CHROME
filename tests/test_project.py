@@ -36,16 +36,17 @@ class ProjectTests(unittest.TestCase):
         self.assertIn('Content="Bing"', xaml)
         self.assertIn('Content="DuckDuckGo"', xaml)
         self.assertIn("Uri.EscapeDataString(query)", code)
-        self.assertIn("Browser.Source = BuildSearchUri(value)", code)
+        self.assertIn("NavigateTo(BuildSearchUri(value))", code)
         self.assertIn('PointerPressed="Browser_PointerPressed"', xaml)
         self.assertIn("Browser.Focus(FocusState.Pointer)", code)
 
     def test_toolbar_keeps_all_controls_visible_in_two_rows(self):
         xaml = (ROOT / "src/XboxGamingBrowser/MainPage.xaml").read_text(encoding="utf-8")
         self.assertIn('x:Name="Toolbar" Orientation="Vertical"', xaml)
-        self.assertIn('Content="Pruebas" Width="120"', xaml)
-        self.assertIn('Content="Memoria" Width="120"', xaml)
-        self.assertIn('Content="MODO GAMING" Width="160"', xaml)
+        self.assertIn('Content="Pruebas"', xaml)
+        self.assertIn('Content="Memoria"', xaml)
+        self.assertIn('Content="Logs" Click="Logs_Click"', xaml)
+        self.assertIn('Content="MODO GAMING"', xaml)
 
     def test_fixed_webview_runtime_is_staged_and_selected(self):
         import json
@@ -59,9 +60,22 @@ class ProjectTests(unittest.TestCase):
         self.assertIn('Content Include="FixedRuntime\\**\\*"', project)
         self.assertIn("prepare-webview2-fixed-runtime.ps1", packaging)
         self.assertLess(code.index("FindBundledRuntime()"), code.index("EnsureCoreWebView2Async()"))
-        self.assertIn("Prefer the Xbox OS runtime first", code)
+        self.assertIn("Xbox/sistema", code)
         self.assertIn("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", code)
         self.assertIn("BrowserVersionString", code)
+
+    def test_diagnostics_logs_and_legacy_fallback(self):
+        code = (ROOT / "src/XboxGamingBrowser/MainPage.xaml.cs").read_text(encoding="utf-8")
+        xaml = (ROOT / "src/XboxGamingBrowser/MainPage.xaml").read_text(encoding="utf-8")
+        home = (ROOT / "src/XboxGamingBrowser/Web/home.html").read_text(encoding="utf-8")
+        self.assertIn("LegacyBrowser.Navigate(home)", code)
+        self.assertIn("WebView2 no arrancó", code)
+        self.assertIn("Logs_Click", code)
+        self.assertIn("Clipboard.SetContent(data)", code)
+        self.assertIn("HRESULT 0x", code)
+        self.assertIn('x:Name="LegacyBrowser"', xaml)
+        self.assertIn("Explora.", home)
+        self.assertIn("Pruebas del navegador", home)
 
     def test_appx_logos_have_manifest_dimensions(self):
         import struct

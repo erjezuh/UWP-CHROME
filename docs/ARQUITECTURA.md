@@ -1,8 +1,8 @@
 # Arquitectura
 
-- **Shell:** UWP x64 C# con WinUI 2.8 y WebView2 para Windows/Xbox.
-- **Interfaz:** barra nativa de navegación con botones grandes, home, input URL/búsqueda, diagnóstico, pantalla Gaming y zoom CSS best-effort.
-- **Motor:** WebView2 runtime proporcionado por sistema Xbox compatible. No embebe navegador alternativo.
+- **Shell:** UWP x64 C# con WinUI 2.8.
+- **Interfaz:** barra nativa de navegación con controles grandes, home renovado, input URL/búsqueda, diagnóstico, memoria, logs exportables, pantalla Gaming y zoom best-effort.
+- **Motor principal:** WebView2, primero con runtime Xbox/sistema y después con Fixed Version incluido. Si ambos fallan, se intenta el control UWP WebView heredado para navegación básica; no equivale a Chromium ni garantiza juegos modernos.
 - **Compatibilidad:** `Web/diagnostics.html` detecta APIs en el documento y descarga JSON sin elevar resultados de capacidades parciales a verificados.
 - **Memoria nativa:** `Windows.System.MemoryManager` expone uso y límite del proceso UWP según plataforma.
 - **Restricción de navegación:** URLs HTTP(S) solamente. Pestañas, historial persistente, favoritos, extensiones y descarga de archivos no están implementados en MVP.
