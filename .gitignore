@@ -5,6 +5,7 @@ obj/
 AppPackages/
 artifacts/*
 !artifacts/.gitkeep
+src/XboxGamingBrowser/FixedRuntime/
 logs/*
 !logs/.gitkeep
 *.appx

@@ -3,6 +3,7 @@ $ErrorActionPreference='Stop'; if($env:OS -ne 'Windows_NT'){throw 'La generació
 $root=$PSScriptRoot; $tmp=Join-Path $env:TEMP ('xgb-sign-'+[guid]::NewGuid().ToString('N')); New-Item -ItemType Directory -Path $tmp | Out-Null
 $cert=$null; $pfx=Join-Path $tmp 'build-signing.pfx'; $cer=Join-Path $tmp 'XboxGamingBrowser-signing.cer'; $password=[guid]::NewGuid().ToString('N')+'Aa1!'
 try {
+ & (Join-Path $root 'scripts\prepare-webview2-fixed-runtime.ps1')
  $publisher='CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
  # This is a locally generated development certificate, not a Microsoft-issued certificate.
  # Its subject must match Package.appxmanifest's Publisher exactly for APPX signing.

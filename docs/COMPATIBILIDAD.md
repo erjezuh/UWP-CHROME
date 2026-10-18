@@ -5,6 +5,8 @@
 | WebAssembly | instancia módulo mínimo | implementado, no probado en Xbox |
 | WebGL 2 | crea contexto independiente | implementado, no probado en Xbox |
 | WebGL 1 | fallback con contexto independiente | implementado, no probado en Xbox |
+| Búsqueda web | Google predeterminado; selector Google/Bing/DuckDuckGo; consulta codificada en URL | implementado; requiere conexión y validación en Xbox |
+| Runtime WebView2 | Fixed Version x64 155.0.4283.62 empaquetado; fallback al runtime del sistema si falla el fijo | buildable; compatibilidad del runtime fijo no verificada en consola |
 | Ratón/puntero | Pointer Events, pointer lock y media pointer; identidad de paquete experimental basada en JavaUWP `main-native` | parcial/no verificado; requiere ratón físico en Xbox y versión concreta de OS |
 | Aceleración GPU/renderer | extensión de renderer solo si permitida | parcial; renderer no prueba hardware acceleration |
 | SharedArrayBuffer | constructor y `crossOriginIsolated` | implementado, depende de sitio y runtime |

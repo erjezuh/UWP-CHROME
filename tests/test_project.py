@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 class ProjectTests(unittest.TestCase):
     def test_required_files(self):
-        for item in ["src/XboxGamingBrowser/XboxGamingBrowser.csproj", "src/XboxGamingBrowser/MainPage.xaml.cs", "src/XboxGamingBrowser/Web/home.html", "src/XboxGamingBrowser/Web/diagnostics.html", "docs/INVESTIGACION.md"]:
+        for item in ["src/XboxGamingBrowser/XboxGamingBrowser.csproj", "src/XboxGamingBrowser/MainPage.xaml.cs", "src/XboxGamingBrowser/Web/home.html", "src/XboxGamingBrowser/Web/diagnostics.html", "docs/INVESTIGACION.md", "config/webview2-fixed-runtime.json", "scripts/prepare-webview2-fixed-runtime.ps1"]:
             self.assertTrue((ROOT / item).is_file(), item)
     def test_manifest_xml(self):
         ET.parse(ROOT / "src/XboxGamingBrowser/Package.appxmanifest")
@@ -28,12 +28,32 @@ class ProjectTests(unittest.TestCase):
         for token in ["WebAssembly", "webgl2", "webgl'", "SharedArrayBuffer", "Atomics", "getGamepads", "crossOriginIsolated", "Ratón y puntero"]:
             self.assertIn(token, text)
         self.assertIn("createObjectURL", text)
-    def test_google_search_and_mouse_input_are_wired(self):
+    def test_google_search_engine_is_default_and_alternatives_exist(self):
         code = (ROOT / "src/XboxGamingBrowser/MainPage.xaml.cs").read_text(encoding="utf-8")
         xaml = (ROOT / "src/XboxGamingBrowser/MainPage.xaml").read_text(encoding="utf-8")
-        self.assertIn("www.google.es/search?q=", code)
+        self.assertIn('SelectedIndex="0"', xaml)
+        self.assertIn('Content="Google" Tag="https://www.google.com/search?q="', xaml)
+        self.assertIn('Content="Bing"', xaml)
+        self.assertIn('Content="DuckDuckGo"', xaml)
+        self.assertIn("Uri.EscapeDataString(query)", code)
+        self.assertIn("Browser.Source = BuildSearchUri(value)", code)
         self.assertIn('PointerPressed="Browser_PointerPressed"', xaml)
         self.assertIn("Browser.Focus(FocusState.Pointer)", code)
+
+    def test_fixed_webview_runtime_is_staged_and_selected(self):
+        import json
+        config = json.loads((ROOT / "config/webview2-fixed-runtime.json").read_text(encoding="utf-8"))
+        self.assertEqual(config["architecture"], "x64")
+        self.assertRegex(config["version"], r"^\d+\.\d+\.\d+\.\d+$")
+        self.assertIn("msedge.sf.dl.delivery.mp.microsoft.com", config["cabUrl"])
+        project = (ROOT / "src/XboxGamingBrowser/XboxGamingBrowser.csproj").read_text(encoding="utf-8")
+        code = (ROOT / "src/XboxGamingBrowser/MainPage.xaml.cs").read_text(encoding="utf-8")
+        packaging = (ROOT / "package.ps1").read_text(encoding="utf-8")
+        self.assertIn('Content Include="FixedRuntime\\**\\*"', project)
+        self.assertIn("prepare-webview2-fixed-runtime.ps1", packaging)
+        self.assertLess(code.index("ConfigureBundledRuntime()"), code.index("EnsureCoreWebView2Async()"))
+        self.assertIn("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", code)
+        self.assertIn("BrowserVersionString", code)
 
     def test_appx_logos_have_manifest_dimensions(self):
         import struct
