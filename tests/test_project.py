@@ -58,7 +58,8 @@ class ProjectTests(unittest.TestCase):
         packaging = (ROOT / "package.ps1").read_text(encoding="utf-8")
         self.assertIn('Content Include="FixedRuntime\\**\\*"', project)
         self.assertIn("prepare-webview2-fixed-runtime.ps1", packaging)
-        self.assertLess(code.index("ConfigureBundledRuntime()"), code.index("EnsureCoreWebView2Async()"))
+        self.assertLess(code.index("FindBundledRuntime()"), code.index("EnsureCoreWebView2Async()"))
+        self.assertIn("Prefer the Xbox OS runtime first", code)
         self.assertIn("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", code)
         self.assertIn("BrowserVersionString", code)
 

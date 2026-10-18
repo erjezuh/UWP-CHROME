@@ -14,57 +14,79 @@ namespace XboxGamingBrowser
     {
         private readonly Uri home = new Uri("ms-appx-web:///Web/home.html");
         private bool gaming;
+        private string runtimeStartupInfo = "WebView2 pendiente de inicialización";
 
         public MainPage()
         {
             InitializeComponent();
-            Loaded += async (s, e) =>
-            {
-                try
-                {
-                    // Set before WebView2 creates CoreWebView2. If the bundled fixed
-                    // runtime cannot start on this Xbox OS, retry using the OS runtime.
-                    string bundledRuntime = ConfigureBundledRuntime();
-                    try
-                    {
-                        await Browser.EnsureCoreWebView2Async();
-                    }
-                    catch (Exception) when (!string.IsNullOrEmpty(bundledRuntime))
-                    {
-                        Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
-                        await Browser.EnsureCoreWebView2Async();
-                    }
-                    Browser.Source = home;
-                }
-                catch (Exception ex)
-                {
-                    Address.Text = "WebView2 no disponible: " + ex.Message;
-                }
-            };
+            Loaded += async (s, e) => await InitializeBrowserAsync();
         }
 
-        private static string ConfigureBundledRuntime()
+        private async System.Threading.Tasks.Task InitializeBrowserAsync()
+        {
+            string bundledRuntime = FindBundledRuntime();
+            bool usedFixedRuntime = false;
+            Exception systemRuntimeError = null;
+
+            // Prefer the Xbox OS runtime first. A newer desktop Fixed Version can
+            // contain APIs that this Xbox OS build does not provide.
+            Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
+            try
+            {
+                await Browser.EnsureCoreWebView2Async();
+            }
+            catch (Exception ex)
+            {
+                systemRuntimeError = ex;
+            }
+
+            if (Browser.CoreWebView2 == null && string.IsNullOrEmpty(bundledRuntime))
+            {
+                runtimeStartupInfo = "No se pudo iniciar el runtime de Xbox OS: "
+                    + (systemRuntimeError == null ? "CoreWebView2 quedó sin instancia" : systemRuntimeError.Message);
+            }
+
+            if (Browser.CoreWebView2 == null && !string.IsNullOrEmpty(bundledRuntime))
+            {
+                Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", bundledRuntime);
+                try
+                {
+                    await Browser.EnsureCoreWebView2Async();
+                    usedFixedRuntime = Browser.CoreWebView2 != null;
+                }
+                catch (Exception fixedRuntimeError)
+                {
+                    runtimeStartupInfo = "No se pudo iniciar WebView2. Xbox OS: "
+                        + (systemRuntimeError == null ? "sin instancia" : systemRuntimeError.Message)
+                        + "; runtime incluido: " + fixedRuntimeError.Message;
+                }
+            }
+
+            if (Browser.CoreWebView2 == null)
+            {
+                Address.Text = runtimeStartupInfo;
+                return;
+            }
+
+            string actualVersion = Browser.CoreWebView2.Environment.BrowserVersionString;
+            runtimeStartupInfo = actualVersion + (usedFixedRuntime
+                ? " (runtime fijo incluido)"
+                : " (runtime de Xbox OS)");
+            Browser.Source = home;
+        }
+
+        private static string FindBundledRuntime()
         {
             string fixedRuntimeRoot = Path.Combine(
                 Windows.ApplicationModel.Package.Current.InstalledLocation.Path,
                 "FixedRuntime");
-            if (!Directory.Exists(fixedRuntimeRoot))
-            {
-                Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
-                return null;
-            }
+            if (!Directory.Exists(fixedRuntimeRoot)) return null;
 
             foreach (string runtimeDirectory in Directory.GetDirectories(fixedRuntimeRoot))
             {
                 if (File.Exists(Path.Combine(runtimeDirectory, "msedgewebview2.exe")))
-                {
-                    Environment.SetEnvironmentVariable(
-                        "WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", runtimeDirectory);
                     return runtimeDirectory;
-                }
             }
-
-            Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
             return null;
         }
 
@@ -156,9 +178,7 @@ namespace XboxGamingBrowser
         {
             ulong used = Windows.System.MemoryManager.AppMemoryUsage;
             ulong limit = Windows.System.MemoryManager.AppMemoryUsageLimit;
-            string runtimeVersion = Browser.CoreWebView2 == null
-                ? "WebView2 no inicializado"
-                : Browser.CoreWebView2.Environment.BrowserVersionString;
+            string runtimeVersion = runtimeStartupInfo;
             var dialog = new ContentDialog
             {
                 Title = "Memoria y motor web",
