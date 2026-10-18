@@ -41,7 +41,7 @@
   </StackPanel>
   <Grid Grid.Row="1" Background="#0B1018">
    <wv2:WebView2 x:Name="Browser" Visibility="Collapsed" IsHitTestVisible="True" IsTabStop="True" PointerPressed="Browser_PointerPressed" NavigationStarting="Browser_NavigationStarting" NavigationCompleted="Browser_NavigationCompleted"/>
-   <WebView x:Name="LegacyBrowser" Visibility="Collapsed" IsHitTestVisible="True" IsTabStop="True" PointerPressed="LegacyBrowser_PointerPressed" NavigationStarting="LegacyBrowser_NavigationStarting" NavigationCompleted="LegacyBrowser_NavigationCompleted"/>
+   <WebView x:Name="LegacyBrowser" Visibility="Collapsed" IsHitTestVisible="True" PointerPressed="LegacyBrowser_PointerPressed" NavigationStarting="LegacyBrowser_NavigationStarting" NavigationCompleted="LegacyBrowser_NavigationCompleted"/>
    <Button x:Name="ExitGaming" Content="Volver al navegador" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16" Visibility="Collapsed" Click="Gaming_Click"/>
   </Grid>
  </Grid>
