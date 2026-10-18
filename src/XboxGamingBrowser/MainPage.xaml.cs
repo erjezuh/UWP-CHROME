@@ -22,6 +22,8 @@ namespace XboxGamingBrowser
         private bool gaming;
         private bool initializationStarted;
         private bool legacyMode;
+        private bool webView2TimedOut;
+        private Exception webView2StartupError;
         private string runtimeStartupInfo = "Inicialización aún no iniciada";
 
         public MainPage()
@@ -53,14 +55,19 @@ namespace XboxGamingBrowser
         {
             if (initializationStarted) return;
             initializationStarted = true;
+            LoadStoredLogs();
             SetStatus("INICIANDO MOTOR…", "#F4C95D");
             Log("Arranque de la aplicación.");
-            Log("Xbox/Windows build: " + GetOsVersion());
+            Log("Leyendo versión del sistema.");
+            string osVersion = GetOsVersion();
+            Log("Xbox/Windows build: " + osVersion);
+            Log("Leyendo versión del paquete.");
             Log("Paquete: " + GetPackageVersion());
 
             string bundledRuntime = null;
             try
             {
+                Log("Buscando runtime fijo en el paquete.");
                 bundledRuntime = FindBundledRuntime();
                 Log(string.IsNullOrEmpty(bundledRuntime)
                     ? "Runtime fijo incluido: no encontrado en el paquete."
@@ -71,31 +78,15 @@ namespace XboxGamingBrowser
                 LogException("No se pudo inspeccionar el runtime incluido", ex);
             }
 
-            Exception systemRuntimeError = null;
             Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
-            Log("Intentando inicializar WebView2 con el runtime de Xbox/sistema.");
-            try
-            {
-                await Browser.EnsureCoreWebView2Async();
-            }
-            catch (Exception ex)
-            {
-                systemRuntimeError = ex;
-                LogException("Falló la inicialización con el runtime de Xbox/sistema", ex);
-            }
+            Log("Intentando inicializar WebView2 con el runtime de Xbox/sistema (máximo 20 s).");
+            await TryInitializeWebView2Async("runtime de Xbox/sistema", 20000);
 
-            if (Browser.CoreWebView2 == null && !string.IsNullOrEmpty(bundledRuntime))
+            if (Browser.CoreWebView2 == null && !webView2TimedOut && !string.IsNullOrEmpty(bundledRuntime))
             {
-                Log("WebView2 del sistema no quedó disponible; intentando runtime fijo incluido.");
-                try
-                {
-                    Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", bundledRuntime);
-                    await Browser.EnsureCoreWebView2Async();
-                }
-                catch (Exception ex)
-                {
-                    LogException("Falló la inicialización con el runtime fijo incluido", ex);
-                }
+                Log("WebView2 del sistema no quedó disponible; intentando runtime fijo incluido (máximo 20 s).");
+                Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", bundledRuntime);
+                await TryInitializeWebView2Async("runtime fijo incluido", 20000);
             }
 
             if (Browser.CoreWebView2 != null)
@@ -111,8 +102,10 @@ namespace XboxGamingBrowser
                 return;
             }
 
-            if (systemRuntimeError != null)
-                runtimeStartupInfo = "WebView2 no disponible: " + systemRuntimeError.Message;
+            if (webView2TimedOut)
+                runtimeStartupInfo = "WebView2 no respondió dentro del tiempo límite.";
+            else if (webView2StartupError != null)
+                runtimeStartupInfo = "WebView2 no disponible: " + webView2StartupError.Message;
             else
                 runtimeStartupInfo = "WebView2 no disponible: no se creó CoreWebView2.";
             Log("WebView2 no arrancó. Activando el control UWP WebView integrado como alternativa limitada.");
@@ -134,6 +127,68 @@ namespace XboxGamingBrowser
                 LogException("Falló también el control UWP WebView", ex);
                 Address.Text = runtimeStartupInfo;
             }
+        }
+
+        private async System.Threading.Tasks.Task<bool> TryInitializeWebView2Async(string runtimeName, int timeoutMilliseconds)
+        {
+            System.Threading.Tasks.Task initialization;
+            try
+            {
+                initialization = Browser.EnsureCoreWebView2Async();
+            }
+            catch (Exception ex)
+            {
+                webView2StartupError = ex;
+                LogException("Error inmediato al invocar WebView2 (" + runtimeName + ")", ex);
+                return false;
+            }
+
+            System.Threading.Tasks.Task timeout = System.Threading.Tasks.Task.Delay(timeoutMilliseconds);
+            if (await System.Threading.Tasks.Task.WhenAny(initialization, timeout) != initialization)
+            {
+                webView2TimedOut = true;
+                Log("TIMEOUT: WebView2 no respondió en " + timeoutMilliseconds + " ms (" + runtimeName + "). Se cambiará al motor alternativo.");
+                return false;
+            }
+
+            try
+            {
+                await initialization;
+                if (Browser.CoreWebView2 != null)
+                {
+                    Log("Inicialización WebView2 completada con " + runtimeName + ".");
+                    return true;
+                }
+                Log("La inicialización terminó sin excepción, pero CoreWebView2 sigue siendo null (" + runtimeName + ").");
+            }
+            catch (Exception ex)
+            {
+                webView2StartupError = ex;
+                LogException("Falló la inicialización WebView2 (" + runtimeName + ")", ex);
+            }
+            return false;
+        }
+
+        private void LoadStoredLogs()
+        {
+            try
+            {
+                string path = GetLogFilePath();
+                if (!File.Exists(path)) return;
+                string[] previous = File.ReadAllLines(path);
+                int start = Math.Max(0, previous.Length - 199);
+                for (int i = start; i < previous.Length; i++) logEntries.Add(previous[i]);
+                Log("Se recuperaron " + logEntries.Count + " líneas de sesiones anteriores.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("No se pudieron recuperar logs: " + ex.Message);
+            }
+        }
+
+        private string GetLogFilePath()
+        {
+            return Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "browser-diagnostics.log");
         }
 
         private static string FindBundledRuntime()
@@ -193,6 +248,17 @@ namespace XboxGamingBrowser
             logEntries.Add(line);
             if (logEntries.Count > 200) logEntries.RemoveAt(0);
             System.Diagnostics.Debug.WriteLine("[XboxGamingBrowser] " + line);
+            try
+            {
+                string path = GetLogFilePath();
+                File.AppendAllText(path, line + Environment.NewLine);
+                if (new FileInfo(path).Length > 262144)
+                    File.WriteAllLines(path, logEntries);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("No se pudo guardar log local: " + ex.Message);
+            }
         }
 
         private void LogException(string context, Exception ex)
