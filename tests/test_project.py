@@ -84,6 +84,10 @@ class ProjectTests(unittest.TestCase):
         self.assertIn("var logViewer = new ScrollViewer", code)
         self.assertIn("File.AppendAllText", code)
         self.assertIn('x:Name="LegacyBrowser"', xaml)
+        self.assertIn('x:Name="StartupOverlay"', xaml)
+        self.assertIn('x:Name="Browser" Visibility="Visible"', xaml)
+        self.assertIn("Browser_CoreWebView2Initialized", code)
+        self.assertIn("CoreWebView2Initialized correcto", code)
         self.assertIn("Explora.", home)
         self.assertIn("Pruebas del navegador", home)
 

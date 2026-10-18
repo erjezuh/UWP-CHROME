@@ -43,8 +43,14 @@
    </ScrollViewer>
   </StackPanel>
   <Grid Grid.Row="1" Background="#0B1018">
-   <wv2:WebView2 x:Name="Browser" Visibility="Collapsed" IsHitTestVisible="True" IsTabStop="True" PointerPressed="Browser_PointerPressed" NavigationStarting="Browser_NavigationStarting" NavigationCompleted="Browser_NavigationCompleted"/>
+   <wv2:WebView2 x:Name="Browser" Visibility="Visible" IsHitTestVisible="True" IsTabStop="True" PointerPressed="Browser_PointerPressed" NavigationStarting="Browser_NavigationStarting" NavigationCompleted="Browser_NavigationCompleted"/>
    <WebView x:Name="LegacyBrowser" Visibility="Collapsed" IsHitTestVisible="True" PointerPressed="LegacyBrowser_PointerPressed" NavigationStarting="LegacyBrowser_NavigationStarting" NavigationCompleted="LegacyBrowser_NavigationCompleted"/>
+   <Border x:Name="StartupOverlay" Background="#E60B1018" Visibility="Visible">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14" MaxWidth="760">
+     <TextBlock Text="Preparando Microsoft Edge WebView2" FontSize="32" FontWeight="SemiBold" Foreground="#FFF4F7FA" TextAlignment="Center" TextWrapping="Wrap"/>
+     <TextBlock Text="La consola está iniciando el motor web. Si no responde, la app cambiará automáticamente al motor alternativo." FontSize="18" Foreground="#FFB9C5D0" TextAlignment="Center" TextWrapping="Wrap"/>
+    </StackPanel>
+   </Border>
    <Button x:Name="ExitGaming" Content="Volver al navegador" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16" Visibility="Collapsed" Click="Gaming_Click"/>
   </Grid>
  </Grid>

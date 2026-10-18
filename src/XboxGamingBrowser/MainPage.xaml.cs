@@ -30,6 +30,8 @@ namespace XboxGamingBrowser
         public MainPage()
         {
             InitializeComponent();
+            Browser.CoreWebView2Initialized += Browser_CoreWebView2Initialized;
+            Browser.CoreProcessFailed += Browser_CoreProcessFailed;
             LoadStoredLogs();
             Log("Ventana creada; esperando evento Loaded.");
             Loaded += async (s, e) =>
@@ -85,6 +87,13 @@ namespace XboxGamingBrowser
                 LogException("No se pudo inspeccionar el runtime incluido", ex);
             }
 
+            SetStage("Preparando el control WebView2 visible");
+            Browser.Visibility = Visibility.Visible;
+            LegacyBrowser.Visibility = Visibility.Collapsed;
+            StartupOverlay.Visibility = Visibility.Visible;
+            Browser.UpdateLayout();
+            Log("Control WebView2 visible y layout actualizado antes de EnsureCoreWebView2Async.");
+
             SetStage("Inicializando WebView2 del sistema · límite 20 s");
             Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
             Log("Intentando inicializar WebView2 con el runtime de Xbox/sistema (máximo 20 s).");
@@ -103,6 +112,7 @@ namespace XboxGamingBrowser
                 legacyMode = false;
                 Browser.Visibility = Visibility.Visible;
                 LegacyBrowser.Visibility = Visibility.Collapsed;
+                StartupOverlay.Visibility = Visibility.Collapsed;
                 string version = Browser.CoreWebView2.Environment.BrowserVersionString;
                 runtimeStartupInfo = "WebView2 listo; versión " + version;
                 currentStartupStage = "WebView2 listo";
@@ -126,6 +136,7 @@ namespace XboxGamingBrowser
                 legacyMode = true;
                 LegacyBrowser.Visibility = Visibility.Visible;
                 Browser.Visibility = Visibility.Collapsed;
+                StartupOverlay.Visibility = Visibility.Collapsed;
                 runtimeStartupInfo += " Se usa UWP WebView (motor heredado; no equivalente a Chromium).";
                 SetStatus("MOTOR ALTERNATIVO · UWP WEBVIEW", "#F4C95D");
                 LegacyBrowser.Navigate(home);
@@ -448,6 +459,25 @@ namespace XboxGamingBrowser
                 Clipboard.SetContent(data);
                 Log("Logs copiados al portapapeles.");
             }
+        }
+
+        private void Browser_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                webView2StartupError = e.Exception;
+                LogException("CoreWebView2Initialized informó fallo", e.Exception);
+                return;
+            }
+            if (sender.CoreWebView2 == null)
+                Log("CoreWebView2Initialized se disparó sin excepción, pero CoreWebView2 es null.");
+            else
+                Log("CoreWebView2Initialized correcto; versión " + sender.CoreWebView2.Environment.BrowserVersionString);
+        }
+
+        private void Browser_CoreProcessFailed(WebView2 sender, CoreWebView2ProcessFailedEventArgs e)
+        {
+            Log("Proceso WebView2 fallido: " + e.ProcessFailedKind + "; razón " + e.Reason);
         }
 
         private void Browser_PointerPressed(object sender, PointerRoutedEventArgs e) => Browser.Focus(FocusState.Pointer);
