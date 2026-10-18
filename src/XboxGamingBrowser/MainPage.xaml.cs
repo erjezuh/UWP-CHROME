@@ -24,12 +24,19 @@ namespace XboxGamingBrowser
         private bool legacyMode;
         private bool webView2TimedOut;
         private Exception webView2StartupError;
+        private string currentStartupStage = "Constructor pendiente";
         private string runtimeStartupInfo = "Inicialización aún no iniciada";
 
         public MainPage()
         {
             InitializeComponent();
-            Loaded += async (s, e) => await InitializeBrowserAsync();
+            LoadStoredLogs();
+            Log("Ventana creada; esperando evento Loaded.");
+            Loaded += async (s, e) =>
+            {
+                Log("Evento Loaded recibido.");
+                await InitializeBrowserAsync();
+            };
         }
 
         private async System.Threading.Tasks.Task InitializeBrowserAsync()
@@ -40,6 +47,7 @@ namespace XboxGamingBrowser
             }
             catch (Exception ex)
             {
+                currentStartupStage = "Error no controlado durante la inicialización";
                 runtimeStartupInfo = "Error no controlado al iniciar el navegador: " + ex.Message;
                 LogException("Error no controlado durante la inicialización", ex);
                 try
@@ -55,19 +63,18 @@ namespace XboxGamingBrowser
         {
             if (initializationStarted) return;
             initializationStarted = true;
-            LoadStoredLogs();
-            SetStatus("INICIANDO MOTOR…", "#F4C95D");
+            SetStage("Preparando diagnóstico");
             Log("Arranque de la aplicación.");
-            Log("Leyendo versión del sistema.");
+            SetStage("Leyendo versión del sistema");
             string osVersion = GetOsVersion();
             Log("Xbox/Windows build: " + osVersion);
-            Log("Leyendo versión del paquete.");
+            SetStage("Leyendo versión del paquete");
             Log("Paquete: " + GetPackageVersion());
 
             string bundledRuntime = null;
             try
             {
-                Log("Buscando runtime fijo en el paquete.");
+                SetStage("Inspeccionando runtime fijo incluido");
                 bundledRuntime = FindBundledRuntime();
                 Log(string.IsNullOrEmpty(bundledRuntime)
                     ? "Runtime fijo incluido: no encontrado en el paquete."
@@ -78,12 +85,14 @@ namespace XboxGamingBrowser
                 LogException("No se pudo inspeccionar el runtime incluido", ex);
             }
 
+            SetStage("Inicializando WebView2 del sistema · límite 20 s");
             Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", null);
             Log("Intentando inicializar WebView2 con el runtime de Xbox/sistema (máximo 20 s).");
             await TryInitializeWebView2Async("runtime de Xbox/sistema", 20000);
 
             if (Browser.CoreWebView2 == null && !webView2TimedOut && !string.IsNullOrEmpty(bundledRuntime))
             {
+                SetStage("Intentando runtime fijo incluido · límite 20 s");
                 Log("WebView2 del sistema no quedó disponible; intentando runtime fijo incluido (máximo 20 s).");
                 Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", bundledRuntime);
                 await TryInitializeWebView2Async("runtime fijo incluido", 20000);
@@ -96,6 +105,7 @@ namespace XboxGamingBrowser
                 LegacyBrowser.Visibility = Visibility.Collapsed;
                 string version = Browser.CoreWebView2.Environment.BrowserVersionString;
                 runtimeStartupInfo = "WebView2 listo; versión " + version;
+                currentStartupStage = "WebView2 listo";
                 Log(runtimeStartupInfo);
                 SetStatus("WEBVIEW2 · " + version, "#9FE870");
                 NavigateTo(home);
@@ -108,6 +118,7 @@ namespace XboxGamingBrowser
                 runtimeStartupInfo = "WebView2 no disponible: " + webView2StartupError.Message;
             else
                 runtimeStartupInfo = "WebView2 no disponible: no se creó CoreWebView2.";
+            SetStage("Activando motor alternativo UWP WebView");
             Log("WebView2 no arrancó. Activando el control UWP WebView integrado como alternativa limitada.");
 
             try
@@ -131,9 +142,11 @@ namespace XboxGamingBrowser
 
         private async System.Threading.Tasks.Task<bool> TryInitializeWebView2Async(string runtimeName, int timeoutMilliseconds)
         {
+            DateTime startedAt = DateTime.UtcNow;
             System.Threading.Tasks.Task initialization;
             try
             {
+                Log("Invocando EnsureCoreWebView2Async: " + runtimeName + ".");
                 initialization = Browser.EnsureCoreWebView2Async().AsTask();
             }
             catch (Exception ex)
@@ -147,7 +160,7 @@ namespace XboxGamingBrowser
             if (await System.Threading.Tasks.Task.WhenAny(initialization, timeout) != initialization)
             {
                 webView2TimedOut = true;
-                Log("TIMEOUT: WebView2 no respondió en " + timeoutMilliseconds + " ms (" + runtimeName + "). Se cambiará al motor alternativo.");
+                Log("TIMEOUT: WebView2 no respondió en " + timeoutMilliseconds + " ms (" + runtimeName + "); tiempo medido " + (DateTime.UtcNow - startedAt).TotalMilliseconds.ToString("F0") + " ms. Se cambiará al motor alternativo.");
                 return false;
             }
 
@@ -156,7 +169,7 @@ namespace XboxGamingBrowser
                 await initialization;
                 if (Browser.CoreWebView2 != null)
                 {
-                    Log("Inicialización WebView2 completada con " + runtimeName + ".");
+                    Log("Inicialización WebView2 completada con " + runtimeName + " en " + (DateTime.UtcNow - startedAt).TotalMilliseconds.ToString("F0") + " ms.");
                     return true;
                 }
                 Log("La inicialización terminó sin excepción, pero CoreWebView2 sigue siendo null (" + runtimeName + ").");
@@ -204,6 +217,13 @@ namespace XboxGamingBrowser
                     return runtimeDirectory;
             }
             return null;
+        }
+
+        private void SetStage(string stage)
+        {
+            currentStartupStage = stage;
+            Log("ETAPA DE ARRANQUE: " + stage);
+            SetStatus("INICIANDO · " + stage, "#F4C95D");
         }
 
         private void SetStatus(string text, string color)
@@ -263,11 +283,16 @@ namespace XboxGamingBrowser
 
         private void LogException(string context, Exception ex)
         {
-            Log(context + ": " + ex.GetType().FullName + " | " + ex.Message + " | HRESULT 0x" + Marshal.GetHRForException(ex).ToString("X8"));
-            if (!string.IsNullOrWhiteSpace(ex.StackTrace)) Log(ex.StackTrace);
-            if (ex.InnerException != null)
-                Log("Inner exception: " + ex.InnerException.GetType().FullName + " | " + ex.InnerException.Message
-                    + " | HRESULT 0x" + Marshal.GetHRForException(ex.InnerException).ToString("X8"));
+            Log(context + " | HRESULT 0x" + Marshal.GetHRForException(ex).ToString("X8") + "\n" + ex.ToString());
+            Exception inner = ex.InnerException;
+            int depth = 0;
+            while (inner != null && depth < 5)
+            {
+                Log("Inner[" + depth + "] HRESULT 0x" + Marshal.GetHRForException(inner).ToString("X8")
+                    + " | " + inner.GetType().FullName + " | " + inner.Message);
+                inner = inner.InnerException;
+                depth++;
+            }
         }
 
         private void Go_Click(object sender, RoutedEventArgs e) => Navigate(Address.Text);
@@ -376,8 +401,8 @@ namespace XboxGamingBrowser
             ulong used = MemoryManager.AppMemoryUsage;
             ulong limit = MemoryManager.AppMemoryUsageLimit;
             string content = string.Format(
-                "Paquete: {0}\nXbox/Windows: {1}\nMotor: {2}\nUso reportado: {3:N0} MiB\nLímite actual: {4:N0} MiB\nNivel: {5}\n\nLa API no informa RAM física libre ni memoria privada exacta del motor gráfico.",
-                GetPackageVersion(), GetOsVersion(), runtimeStartupInfo,
+                "Paquete: {0}\nXbox/Windows: {1}\nFase actual: {2}\nMotor: {3}\nUso reportado: {4:N0} MiB\nLímite actual: {5:N0} MiB\nNivel: {6}\n\nLa API no informa RAM física libre ni memoria privada exacta del motor gráfico.",
+                GetPackageVersion(), GetOsVersion(), currentStartupStage, runtimeStartupInfo,
                 used / 1048576.0, limit / 1048576.0, MemoryManager.AppMemoryUsageLevel);
             var dialog = new ContentDialog { Title = "Estado del navegador", Content = content, CloseButtonText = "Cerrar" };
             await dialog.ShowAsync();
@@ -388,7 +413,9 @@ namespace XboxGamingBrowser
             Log("Panel de logs abierto.");
             var logBox = new TextBox
             {
-                Text = string.Join("\n", logEntries),
+                Text = "Paquete: " + GetPackageVersion() + "\nFase actual: " + currentStartupStage
+                    + "\nEstado del motor: " + runtimeStartupInfo + "\n\n"
+                    + string.Join("\n", logEntries),
                 IsReadOnly = true,
                 AcceptsReturn = true,
                 TextWrapping = TextWrapping.Wrap,
@@ -409,7 +436,8 @@ namespace XboxGamingBrowser
             if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             {
                 var data = new DataPackage();
-                data.SetText(string.Join("\n", logEntries));
+                data.SetText("Paquete: " + GetPackageVersion() + "\nFase actual: " + currentStartupStage
+                    + "\nEstado del motor: " + runtimeStartupInfo + "\n\n" + string.Join("\n", logEntries));
                 Clipboard.SetContent(data);
                 Log("Logs copiados al portapapeles.");
             }

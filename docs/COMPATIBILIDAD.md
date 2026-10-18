@@ -6,7 +6,7 @@
 | WebGL 2 | crea contexto independiente | implementado, no probado en Xbox |
 | WebGL 1 | fallback con contexto independiente | implementado, no probado en Xbox |
 | Búsqueda web | Google predeterminado; selector Google/Bing/DuckDuckGo; consulta codificada en URL | implementado; requiere conexión y validación en Xbox |
-| Runtime/navegación | Intenta WebView2 del sistema, después Fixed Version incluido; si ambos fallan activa el control UWP WebView heredado | fallback con timeout y logs persistentes en 0.3.4.0; pendiente de probar en Xbox; WebView heredado no equivale a Chromium |
+| Runtime/navegación | Intenta WebView2 del sistema, después Fixed Version incluido; si ambos fallan activa el control UWP WebView heredado | fallback con timeout, etapas de inicio y logs persistentes detallados en 0.3.6.0; pendiente de probar en Xbox; WebView heredado no equivale a Chromium |
 | Ratón/puntero | Pointer Events, pointer lock y media pointer; identidad de paquete experimental basada en JavaUWP `main-native` | parcial/no verificado; requiere ratón físico en Xbox y versión concreta de OS |
 | Aceleración GPU/renderer | extensión de renderer solo si permitida | parcial; renderer no prueba hardware acceleration |
 | SharedArrayBuffer | constructor y `crossOriginIsolated` | implementado, depende de sitio y runtime |

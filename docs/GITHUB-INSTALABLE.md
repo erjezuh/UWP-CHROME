@@ -2,7 +2,7 @@
 
 El workflow `.github/workflows/build-xbox-package.yml` corre en runner Windows al hacer push a la rama Arena o manualmente desde **Actions → Build Xbox UWP package → Run workflow**. Ejecuta pruebas estáticas, compila UWP x64 en Release, firma el AppX con un certificado efímero cuyo subject coincide con `Publisher`, y publica el AppX, el certificado público y el SHA-256 como artefacto descargable por 90 días. El publisher declarado usa el DN de Microsoft para la variante experimental, pero el certificado es autogenerado y no emitido por Microsoft: no presenta el paquete como software oficialmente firmado por Microsoft. El AppX incluye WebView2 Fixed Version x64 (más de 250 MB según Microsoft); el runtime queda fijado y debe actualizarse en el proyecto para recibir correcciones de seguridad.
 
-Para un enlace de descarga permanente de GitHub Releases, el workflow también publica los mismos archivos cuando se compila un tag `v*`. En GitHub, desde Releases crea un tag/version (por ejemplo `v0.3.5`) apuntando a un commit que incluya el workflow; al correr el workflow de ese tag, la release contendrá el paquete. No se sube ni conserva el PFX/clave privada. El paquete está firmado para desarrollo y no es Microsoft Store signing.
+Para un enlace de descarga permanente de GitHub Releases, el workflow también publica los mismos archivos cuando se compila un tag `v*`. En GitHub, desde Releases crea un tag/version (por ejemplo `v0.3.6`) apuntando a un commit que incluya el workflow; al correr el workflow de ese tag, la release contendrá el paquete. No se sube ni conserva el PFX/clave privada. El paquete está firmado para desarrollo y no es Microsoft Store signing.
 
 ## Instalación con Device Portal
 
