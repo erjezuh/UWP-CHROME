@@ -10,6 +10,19 @@ class ProjectTests(unittest.TestCase):
             self.assertTrue((ROOT / item).is_file(), item)
     def test_manifest_xml(self):
         ET.parse(ROOT / "src/XboxGamingBrowser/Package.appxmanifest")
+
+    def test_experimental_edge_namespace_identity_matches_dev_signing_subject(self):
+        ns = {"f": "http://schemas.microsoft.com/appx/manifest/foundation/windows10"}
+        root = ET.parse(ROOT / "src/XboxGamingBrowser/Package.appxmanifest").getroot()
+        identity = root.find("f:Identity", ns)
+        self.assertEqual(identity.get("Name"), "Microsoft.MicrosoftEdge.XboxGamingBrowser")
+        self.assertEqual(identity.get("Publisher"), "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US")
+        app = root.find(".//f:Application", ns)
+        self.assertEqual(app.get("Id"), "App")
+        package_script = (ROOT / "package.ps1").read_text(encoding="utf-8")
+        self.assertIn("New-SelfSignedCertificate", package_script)
+        self.assertIn("-Subject $publisher", package_script)
+        self.assertIn("not a Microsoft-issued certificate", package_script)
     def test_diagnostics_claims(self):
         text = (ROOT / "src/XboxGamingBrowser/Web/diagnostics.html").read_text(encoding="utf-8")
         for token in ["WebAssembly", "webgl2", "webgl'", "SharedArrayBuffer", "Atomics", "getGamepads", "crossOriginIsolated", "Ratón y puntero"]:

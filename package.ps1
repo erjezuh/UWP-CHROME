@@ -3,7 +3,11 @@ $ErrorActionPreference='Stop'; if($env:OS -ne 'Windows_NT'){throw 'La generació
 $root=$PSScriptRoot; $tmp=Join-Path $env:TEMP ('xgb-sign-'+[guid]::NewGuid().ToString('N')); New-Item -ItemType Directory -Path $tmp | Out-Null
 $cert=$null; $pfx=Join-Path $tmp 'build-signing.pfx'; $cer=Join-Path $tmp 'XboxGamingBrowser-signing.cer'; $password=[guid]::NewGuid().ToString('N')+'Aa1!'
 try {
- $cert=New-SelfSignedCertificate -Type Custom -Subject 'CN=ArenaDev' -FriendlyName 'XboxGamingBrowser CI/Dev signing' -KeyAlgorithm RSA -KeyLength 2048 -KeyExportPolicy Exportable -KeyUsage DigitalSignature -CertStoreLocation 'Cert:\CurrentUser\My' -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3','2.5.29.19={text}')
+ $publisher='CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+ # This is a locally generated development certificate, not a Microsoft-issued certificate.
+ # Its subject must match Package.appxmanifest's Publisher exactly for APPX signing.
+ $cert=New-SelfSignedCertificate -Type Custom -Subject $publisher -FriendlyName 'XboxGamingBrowser personal dev signing (Edge-namespace identity)' -KeyAlgorithm RSA -KeyLength 2048 -KeyExportPolicy Exportable -KeyUsage DigitalSignature -CertStoreLocation 'Cert:\CurrentUser\My' -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3','2.5.29.19={text}')
+ if($cert.Subject -ne $publisher){throw "Certificate subject does not match manifest publisher. Expected '$publisher'; got '$($cert.Subject)'"}
  Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString $password -AsPlainText -Force) | Out-Null
  Export-Certificate -Cert $cert -FilePath $cer | Out-Null
  & (Join-Path $root 'build.ps1') -Configuration $Configuration -SigningPfxPath $pfx -SigningPassword $password
