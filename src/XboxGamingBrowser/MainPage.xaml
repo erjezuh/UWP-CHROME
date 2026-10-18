@@ -1,5 +1,6 @@
 <Page x:Class="XboxGamingBrowser.MainPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:wv2="using:Microsoft.UI.Xaml.Controls" Background="#10151E">
- <Grid RowDefinitions="Auto,*">
+ <Grid>
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
   <StackPanel x:Name="Toolbar" Orientation="Horizontal" Spacing="10" Padding="12" Background="#182231">
    <Button Content="‹" FontSize="24" Click="Back_Click"/><Button Content="›" FontSize="24" Click="Forward_Click"/><Button Content="⌂" FontSize="24" Click="Home_Click"/>
    <TextBox x:Name="Address" Width="620" PlaceholderText="Dirección web o búsqueda" KeyDown="Address_KeyDown"/><Button Content="IR" Click="Go_Click"/><Button Content="MODO GAMING" Click="Gaming_Click"/><Button Content="Pruebas" Click="Diagnostics_Click"/><Button Content="Memoria" Click="Memory_Click"/><Button Content="−" Click="ZoomOut_Click"/><Button Content="+" Click="ZoomIn_Click"/>
