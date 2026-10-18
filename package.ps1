@@ -1,6 +1,8 @@
 [CmdletBinding()] param([ValidateSet('Debug','Release')][string]$Configuration='Release',[string]$OutputDirectory=(Join-Path $PSScriptRoot 'artifacts'))
 $ErrorActionPreference='Stop'; if($env:OS -ne 'Windows_NT'){throw 'La generación de AppX requiere Windows + Windows SDK.'}
-$root=$PSScriptRoot; $tmp=Join-Path $env:TEMP ('xgb-sign-'+[guid]::NewGuid().ToString('N')); New-Item -ItemType Directory -Path $tmp | Out-Null
+$root=$PSScriptRoot; $logs=Join-Path $root 'logs'; New-Item -ItemType Directory -Force -Path $logs | Out-Null
+$transcript=Join-Path $logs ('package-{0:yyyyMMdd-HHmmss}.log' -f (Get-Date)); Start-Transcript -Path $transcript -Force | Out-Null
+$tmp=Join-Path $env:TEMP ('xgb-sign-'+[guid]::NewGuid().ToString('N')); New-Item -ItemType Directory -Path $tmp | Out-Null
 $cert=$null; $pfx=Join-Path $tmp 'build-signing.pfx'; $cer=Join-Path $tmp 'XboxGamingBrowser-signing.cer'; $password=[guid]::NewGuid().ToString('N')+'Aa1!'
 try {
  & (Join-Path $root 'scripts\prepare-webview2-fixed-runtime.ps1')
@@ -20,7 +22,11 @@ try {
  $dest=Join-Path $OutputDirectory 'XboxGamingBrowser-x64.appx'; Copy-Item $pkg.FullName $dest -Force; Copy-Item $cer (Join-Path $OutputDirectory 'XboxGamingBrowser-signing.cer') -Force
  $hash=(Get-FileHash $dest -Algorithm SHA256).Hash; Set-Content -Path (Join-Path $OutputDirectory 'SHA256SUMS.txt') -Value "$hash  XboxGamingBrowser-x64.appx" -Encoding ascii
  Write-Host "Paquete firmado listo: $dest" -ForegroundColor Green; Write-Host "SHA-256: $hash"
+} catch {
+ Write-Host ("ERROR DE EMPAQUETADO: " + ($_ | Out-String)) -ForegroundColor Red
+ throw
 } finally {
  if($cert){Remove-Item -LiteralPath ("Cert:\CurrentUser\My\"+$cert.Thumbprint) -Force -ErrorAction SilentlyContinue}
  Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+ Stop-Transcript | Out-Null
 }
