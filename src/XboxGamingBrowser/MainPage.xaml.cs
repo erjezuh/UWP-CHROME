@@ -3,6 +3,7 @@ using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.System;
@@ -196,11 +197,11 @@ namespace XboxGamingBrowser
 
         private void LogException(string context, Exception ex)
         {
-            Log(context + ": " + ex.GetType().FullName + " | " + ex.Message + " | HRESULT 0x" + ex.HResult.ToString("X8"));
+            Log(context + ": " + ex.GetType().FullName + " | " + ex.Message + " | HRESULT 0x" + Marshal.GetHRForException(ex).ToString("X8"));
             if (!string.IsNullOrWhiteSpace(ex.StackTrace)) Log(ex.StackTrace);
             if (ex.InnerException != null)
                 Log("Inner exception: " + ex.InnerException.GetType().FullName + " | " + ex.InnerException.Message
-                    + " | HRESULT 0x" + ex.InnerException.HResult.ToString("X8"));
+                    + " | HRESULT 0x" + Marshal.GetHRForException(ex.InnerException).ToString("X8"));
         }
 
         private void Go_Click(object sender, RoutedEventArgs e) => Navigate(Address.Text);
