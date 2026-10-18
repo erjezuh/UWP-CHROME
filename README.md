@@ -16,7 +16,7 @@ Windows 10/11, Visual Studio con carga de trabajo UWP, Windows 10 SDK (10.0.1904
 
 En Windows PowerShell: `./setup.ps1`; luego `./build.ps1`, `./test.ps1`, `./package.ps1`. Para desplegar: `./deploy-xbox.ps1 -DeviceAddress <IP-o-host>` y completar el PIN/configuración de Xbox cuando se solicite. No se requieren credenciales de Microsoft en los scripts.
 
-Ver [investigación](docs/INVESTIGACION.md), [instalación](docs/INSTALACION.md), [compatibilidad](docs/COMPATIBILIDAD.md) y [limitaciones](docs/LIMITACIONES.md).
+Ver [investigación](docs/INVESTIGACION.md), [compilación e instalación](docs/INSTALACION.md), [descarga del paquete compilado por GitHub](docs/GITHUB-INSTALABLE.md), [compatibilidad](docs/COMPATIBILIDAD.md) y [limitaciones](docs/LIMITACIONES.md). GitHub Actions crea un AppX x64 descargable; los tags `v*` publican assets en GitHub Releases.
 
 ## Licencia
 Código del proyecto: MIT. WinUI/WebView2 y Windows SDK conservan sus licencias originales. No se incluyen juegos ni recursos comerciales.

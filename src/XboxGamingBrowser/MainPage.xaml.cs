@@ -35,8 +35,8 @@ namespace XboxGamingBrowser
             var dialog = new ContentDialog { Title = "Memoria de la aplicación", Content = string.Format("Uso reportado: {0:N0} MiB\nLímite actual: {1:N0} MiB\nNivel: {2}\n\nEsta API no indica RAM física libre ni memoria privada exacta del motor gráfico.", used / 1048576.0, limit / 1048576.0, Windows.System.MemoryManager.AppMemoryUsageLevel), CloseButtonText = "Cerrar" };
             await dialog.ShowAsync();
         }
-        private void Browser_NavigationStarting(WebView2 s, CoreWebView2NavigationStartingEventArgs e) { Address.Text = e.Uri; }
-        private void Browser_NavigationCompleted(WebView2 s, CoreWebView2NavigationCompletedEventArgs e) { if (!e.IsSuccess) Address.Text = "Error de navegación: " + e.WebErrorStatus; }
+        private void Browser_NavigationStarting(WebView2 s, WebView2NavigationStartingEventArgs e) { Address.Text = e.Uri; }
+        private void Browser_NavigationCompleted(WebView2 s, WebView2NavigationCompletedEventArgs e) { if (!e.IsSuccess) Address.Text = "Error de navegación: " + e.WebErrorStatus; }
         private void Gaming_Click(object s,RoutedEventArgs e)
         {
             gaming = !gaming; Toolbar.Visibility = gaming ? Visibility.Collapsed : Visibility.Visible; ExitGaming.Visibility = gaming ? Visibility.Visible : Visibility.Collapsed;
