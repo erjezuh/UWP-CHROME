@@ -33,3 +33,6 @@ credentials*
 *.ff
 *.iwi
 *.zone
+
+__pycache__/
+*.py[cod]
