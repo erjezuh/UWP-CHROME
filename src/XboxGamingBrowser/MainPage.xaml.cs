@@ -330,9 +330,7 @@ namespace XboxGamingBrowser
                 MinWidth = 620,
                 MaxWidth = 1000,
                 MinHeight = 300,
-                MaxHeight = 520,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+                MaxHeight = 520
             };
             var dialog = new ContentDialog
             {
