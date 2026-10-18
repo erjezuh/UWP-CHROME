@@ -5,35 +5,38 @@
       RequestedTheme="Dark"
       Background="#0B1018">
  <Page.Resources>
+  <AcrylicBrush x:Key="ToolbarAcrylic" BackgroundSource="HostBackdrop" TintColor="#FF101A26" TintOpacity="0.52" FallbackColor="#E6101A26"/>
   <Style x:Key="ToolbarButton" TargetType="Button">
    <Setter Property="MinHeight" Value="42"/><Setter Property="Padding" Value="14,8"/>
    <Setter Property="FontSize" Value="16"/><Setter Property="FontWeight" Value="SemiBold"/>
+   <Setter Property="Background" Value="#5538485A"/><Setter Property="Foreground" Value="#FFF4F7FA"/>
+   <Setter Property="BorderBrush" Value="#557A90A5"/><Setter Property="BorderThickness" Value="1"/>
   </Style>
  </Page.Resources>
  <Grid>
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <StackPanel x:Name="Toolbar" Orientation="Vertical" Spacing="7" Padding="12,10" Background="#131D2A">
+  <StackPanel x:Name="Toolbar" Orientation="Vertical" Spacing="7" Padding="12,10" Background="{StaticResource ToolbarAcrylic}">
    <StackPanel Orientation="Horizontal" Spacing="8">
     <Button Style="{StaticResource ToolbarButton}" Content="‹" Width="48" FontSize="24" Padding="0" AutomationProperties.Name="Atrás" Click="Back_Click"/>
     <Button Style="{StaticResource ToolbarButton}" Content="›" Width="48" FontSize="24" Padding="0" AutomationProperties.Name="Adelante" Click="Forward_Click"/>
     <Button Style="{StaticResource ToolbarButton}" Content="⌂" Width="48" FontSize="22" Padding="0" AutomationProperties.Name="Inicio" Click="Home_Click"/>
-    <ComboBox x:Name="SearchEngine" Width="138" MinHeight="42" SelectedIndex="0" AutomationProperties.Name="Motor de búsqueda">
+    <ComboBox x:Name="SearchEngine" Width="138" MinHeight="42" SelectedIndex="0" Background="#66202B3B" Foreground="#FFF4F7FA" AutomationProperties.Name="Motor de búsqueda">
      <ComboBoxItem Content="Google" Tag="https://www.google.com/search?q="/>
      <ComboBoxItem Content="Bing" Tag="https://www.bing.com/search?q="/>
      <ComboBoxItem Content="DuckDuckGo" Tag="https://duckduckgo.com/?q="/>
     </ComboBox>
-    <TextBox x:Name="Address" MinWidth="240" HorizontalAlignment="Stretch" Width="500" MinHeight="42" PlaceholderText="Escribe una búsqueda o dirección web" KeyDown="Address_KeyDown"/>
+    <TextBox x:Name="Address" MinWidth="240" HorizontalAlignment="Stretch" Width="500" MinHeight="42" PlaceholderText="Escribe una búsqueda o dirección web" Background="#66202B3B" Foreground="#FFF4F7FA" BorderBrush="#667A90A5" KeyDown="Address_KeyDown"/>
     <Button Style="{StaticResource ToolbarButton}" Content="IR" Width="72" Click="Go_Click"/>
    </StackPanel>
    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
     <StackPanel Orientation="Horizontal" Spacing="8">
-     <Button Style="{StaticResource ToolbarButton}" Content="MODO GAMING" Background="#107C10" Click="Gaming_Click"/>
+     <Button Style="{StaticResource ToolbarButton}" Content="MODO GAMING" Background="#7A107C10" Click="Gaming_Click"/>
      <Button Style="{StaticResource ToolbarButton}" Content="Pruebas" Click="Diagnostics_Click"/>
      <Button Style="{StaticResource ToolbarButton}" Content="Memoria" Click="Memory_Click"/>
      <Button Style="{StaticResource ToolbarButton}" Content="Logs" Click="Logs_Click"/>
      <Button Style="{StaticResource ToolbarButton}" Content="−" Width="56" FontSize="22" Padding="0" AutomationProperties.Name="Alejar" Click="ZoomOut_Click"/>
      <Button Style="{StaticResource ToolbarButton}" Content="+" Width="56" FontSize="22" Padding="0" AutomationProperties.Name="Acercar" Click="ZoomIn_Click"/>
-     <Border Background="#202D3B" Padding="12,8" VerticalAlignment="Center">
+     <Border Background="#55202D3B" Padding="12,8" VerticalAlignment="Center">
       <TextBlock x:Name="StatusText" Text="INICIANDO MOTOR…" Foreground="#9FE870" FontSize="14" FontWeight="SemiBold"/>
      </Border>
     </StackPanel>

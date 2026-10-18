@@ -43,6 +43,8 @@ class ProjectTests(unittest.TestCase):
     def test_toolbar_keeps_all_controls_visible_in_two_rows(self):
         xaml = (ROOT / "src/XboxGamingBrowser/MainPage.xaml").read_text(encoding="utf-8")
         self.assertIn('x:Name="Toolbar" Orientation="Vertical"', xaml)
+        self.assertIn('AcrylicBrush x:Key="ToolbarAcrylic"', xaml)
+        self.assertIn('BackgroundSource="HostBackdrop"', xaml)
         self.assertIn('Content="Pruebas"', xaml)
         self.assertIn('Content="Memoria"', xaml)
         self.assertIn('Content="Logs" Click="Logs_Click"', xaml)
