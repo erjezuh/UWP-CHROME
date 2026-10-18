@@ -22,6 +22,14 @@ jobs:
       - name: Restaurar, compilar x64 y firmar paquete de desarrollo
         shell: pwsh
         run: ./package.ps1 -Configuration Release
+      - name: Adjuntar logs de compilación si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XboxGamingBrowser-build-logs
+          path: logs/*.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Publicar paquete como artefacto descargable
         uses: actions/upload-artifact@v4
         with:
