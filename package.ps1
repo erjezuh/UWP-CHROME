@@ -23,7 +23,15 @@ try {
  $hash=(Get-FileHash $dest -Algorithm SHA256).Hash; Set-Content -Path (Join-Path $OutputDirectory 'SHA256SUMS.txt') -Value "$hash  XboxGamingBrowser-x64.appx" -Encoding ascii
  Write-Host "Paquete firmado listo: $dest" -ForegroundColor Green; Write-Host "SHA-256: $hash"
 } catch {
- Write-Host ("ERROR DE EMPAQUETADO: " + ($_ | Out-String)) -ForegroundColor Red
+ $failure=($_ | Out-String).Trim()
+ Write-Host ("ERROR DE EMPAQUETADO: " + $failure) -ForegroundColor Red
+ Write-Host ("::error title=Fallo de empaquetado::" + ($failure -replace "`r|`n", ' '))
+ $buildLog=Get-ChildItem -LiteralPath $logs -Filter 'build-*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+ if($buildLog){
+  Get-Content -LiteralPath $buildLog.FullName | Select-String -Pattern 'error |error:|failed|no se puede|no se encontró' | Select-Object -Last 12 | ForEach-Object {
+   Write-Host ("::error title=Diagnóstico MSBuild::" + ($_.Line -replace "`r|`n", ' '))
+  }
+ }
  throw
 } finally {
  if($cert){Remove-Item -LiteralPath ("Cert:\CurrentUser\My\"+$cert.Thumbprint) -Force -ErrorAction SilentlyContinue}
