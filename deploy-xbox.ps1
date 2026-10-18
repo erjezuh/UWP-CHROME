@@ -7,10 +7,13 @@ if(!$PackagePath){
 try { $release=Invoke-RestMethod -Uri $api -Headers @{ 'User-Agent'='XboxGamingBrowser-Deploy'; 'Accept'='application/vnd.github+json' } }
 catch { throw "No se pudo consultar la última Release. Comprueba que exista una release v* publicada y que el repositorio sea accesible; también puedes pasar -PackagePath. Detalle: $($_.Exception.Message)" }
 $asset=$release.assets | Where-Object name -EQ 'XboxGamingBrowser-x64.appx' | Select-Object -First 1
+$certAsset=$release.assets | Where-Object name -EQ 'XboxGamingBrowser-signing.cer' | Select-Object -First 1
 if(!$asset){throw "La última Release ($($release.tag_name)) no contiene XboxGamingBrowser-x64.appx. Comprueba que el workflow terminó correctamente."}
-$PackagePath=Join-Path $root 'artifacts\XboxGamingBrowser-x64.appx'; New-Item -ItemType Directory -Force (Split-Path $PackagePath) | Out-Null
+if(!$certAsset){throw "La Release no incluye el certificado público asociado. No instales solo el paquete; publica de nuevo el artefacto completo."}
+$PackagePath=Join-Path $root 'artifacts\XboxGamingBrowser-x64.appx'; $certPath=Join-Path $root 'artifacts\XboxGamingBrowser-signing.cer'; New-Item -ItemType Directory -Force (Split-Path $PackagePath) | Out-Null
 Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $PackagePath -Headers @{ 'User-Agent'='XboxGamingBrowser-Deploy' }
-Write-Host "Descargado desde GitHub: $PackagePath" -ForegroundColor Green
+Invoke-WebRequest -Uri $certAsset.browser_download_url -OutFile $certPath -Headers @{ 'User-Agent'='XboxGamingBrowser-Deploy' }
+Write-Host "Descargados desde GitHub: $PackagePath y $certPath" -ForegroundColor Green
 }
 if(!(Test-Path $PackagePath)){throw "Paquete no encontrado: $PackagePath"}
 $device=$DeviceAddress.Trim().TrimEnd('/'); if($device -notmatch '^https?://'){$device="https://$device"}; if($device -notmatch '^https://'){throw 'El Device Portal de Xbox debe usarse por HTTPS.'}
