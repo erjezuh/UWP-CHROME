@@ -1,0 +1,28 @@
+# Investigación técnica (18-10-2026)
+
+## Decisión
+UWP C# x64 + WinUI 2.8 + WebView2, interfaz nativa y web local para UI/diagnóstico. WebView2 para Xbox se anunció GA en SDK 1.0.2151.40 y está disponible desde actualización Xbox 2310 (231018-2200). No es el control web antiguo y tampoco es un ejecutable Chrome empacado. Requisito explícito: consola OS que incluya el runtime/control compatible. [WebView2 Xbox SDK release](https://learn.microsoft.com/en-us/microsoft-edge/webview2/release-notes/sdk/1-0-2151-40) · [Plataformas WebView2](https://learn.microsoft.com/en-us/microsoft-edge/webview2/).
+
+## Comparativa
+- **WebView2 UWP (elegido):** Edge Chromium integrado/documentado en Xbox con UWP WinUI2; acerca WebAssembly/Canvas/WebGL modernas a la plataforma. Aun así, la presencia de APIs, aceleración, límites GPU, WASM threads y versiones se verifica en el runtime Xbox real; Microsoft no ofrece una matriz pública de paridad completa de cada API por WebView2 Xbox.
+- **UWP WebView legado:** es el control oficialmente requerido en algunos escenarios Xbox de contenido web tradicional; Microsoft lo depreca y WebView2 usa Edge Chromium. No se confía en él para compatibilidad de juegos modernos.
+- **WinUI 3/Windows App SDK:** no es vía válida para Xbox (Xbox/HoloLens no soportado por WinUI 3 en su matriz actual); requiere runtime Win32 de escritorio.
+- **Chromium/Chrome independiente:** no se puede cargar un EXE Win32 desde UWP ni asumir Chrome instalable en Xbox. Empaquetar Chromium propio no es una vía soportada/documentada de bajo coste.
+- **GDK/ID@Xbox:** camino para juegos y acceso completo a hardware, no un navegador de carga lateral abierto sin programas/herramientas apropiadas.
+
+## Capacidad web
+WebView2 emplea Microsoft Edge (Chromium), por lo que WASM es parte de la plataforma Chromium; la disponibilidad efectiva en consola debe verificarse. WebGL2, hardware acceleration, SIMD y threading no se declaran confirmados hasta ejecutar el diagnóstico y pruebas en Xbox. WebGPU no es requisito ni se promete.
+
+SharedArrayBuffer requiere contexto seguro y aislamiento cross-origin en navegadores Chromium: `Cross-Origin-Opener-Policy: same-origin` más `Cross-Origin-Embedder-Policy: require-corp` o `credentialless`, además de recursos compatibles con COEP/CORS. Es una política de cada web de juego, no algo que pueda inyectar globalmente el host en una navegación de terceros. [MDN SAB](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer) · [COOP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Opener-Policy) · [COEP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy).
+
+## Presupuesto y medición
+Microsoft documenta, para UWP Xbox en primer plano, hasta **1 GB para apps** y **5 GB para juegos**, con 128 MB de background; asignación de recursos varía y exceder límite causa fallos. Depurar en Visual Studio altera el límite. No hay una vía pública para que una app de navegador cargada lateralmente se convierta automáticamente en juego con 5 GB. `MemoryManager.AppMemoryUsage` y `AppMemoryUsageLimit` ofrecen uso/límite que aplica el sistema; no dan RAM física libre ni desglose entre renderer, JS/WASM, GPU y runtime. El proyecto expone estos valores y no usa métodos no documentados. [Asignación de recursos Xbox](https://learn.microsoft.com/en-us/previous-versions/windows/uwp/xbox-apps/system-resource-allocation) · [MemoryManager](https://learn.microsoft.com/en-us/uwp/api/windows.system.memorymanager).
+
+## Black Ops Zombies / port exigente
+Se localizó [bo1z-client](https://github.com/jplot/bo1z-client), un cliente comunitario que describe engine KisakBlack compilado a WASM y modificaciones/archivos de engine, y [bo1-zombies-decompiled](https://github.com/MisaDev4/bo1-zombies-decompiled). La descripción de bo1z-client afirma que engine y su pegamento están en el repo; no existe una prueba independiente realizada aquí sobre Xbox ni en este proyecto. Una página externa habla de SharedArrayBuffer y memoria; no se toma como evidencia verificada de requisitos exactos. Se trata de un proyecto no oficial relacionado con una propiedad comercial y su contenido/licencia puede mezclar código con material protegido. No se descarga, empaqueta ni redistribuye. Requisitos a comprobar con upstream: compilación WASM, threading/SAB/COOP-COEP, SIMD, memoria heap, recursos descargados y soporte Gamepad/WebGL/WebGPU (según renderer/runtime concreta). **No se afirma que funcione** en la consola.
+
+## Requisitos para compilar e instalar
+Windows 10/11, VS con UWP tools, Windows SDK, MSBuild, toolchain .NET Native y NuGet. Paquete x64 firmado para desarrollo; instalación con VS emparejado y PIN o Device Portal local habilitado. Para WebView2, OS Xbox 2310+. La consola y dispositivo no están disponibles para esta validación, y este entorno Linux no genera AppX.
+
+## Licencias
+Aplicación de este repo: MIT. WinUI 2, WebView2, UWP SDK y dependencias mantienen licencias upstream. No se incluyen binarios del navegador ni juegos. La licencia de terceros debe revisarse en sus repositorios antes de reutilizar código. La licencia MIT no concede derechos de Activision/Treyarch.

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap">
+ <Identity Name="Arena.XboxGamingBrowser" Publisher="CN=ArenaDev" Version="0.1.0.0" />
+ <Properties><DisplayName>Xbox Gaming Browser</DisplayName><PublisherDisplayName>XboxGamingBrowser</PublisherDisplayName><Logo>Assets\StoreLogo.png</Logo></Properties>
+ <Dependencies><TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" /></Dependencies>
+ <Resources><Resource Language="es-ES" /></Resources>
+ <Applications><Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="XboxGamingBrowser.App"><uap:VisualElements DisplayName="Xbox Gaming Browser" Square150x150Logo="Assets\Logo.png" Square44x44Logo="Assets\SmallLogo.png" Description="Navegador de juegos web experimental" BackgroundColor="#10151E"><uap:DefaultTile Wide310x150Logo="Assets\WideLogo.png" /></uap:VisualElements></Application></Applications>
+ <Capabilities><Capability Name="internetClient" /><Capability Name="privateNetworkClientServer" /></Capabilities>
+</Package>

@@ -1,0 +1,35 @@
+# build / packaging
+.vs/
+bin/
+obj/
+AppPackages/
+artifacts/*
+!artifacts/.gitkeep
+logs/*
+!logs/.gitkeep
+*.appx
+*.msix
+*.appxbundle
+*.msixbundle
+*.appinstaller
+*.pfx
+*.cer
+*.snupkg
+# local settings and credentials
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.env
+.env.*
+!.env.example
+secrets.json
+credentials*
+# dumps and local game data
+*.dmp
+*.log
+*.wasm
+*.pak
+*.ff
+*.iwi
+*.zone
